@@ -1,9 +1,10 @@
 {
-	  "name": "qwerty",
+	  "name": "conveyer-service-collector",
 	  "version": "1.0.0",
-	  "description": "consumer",
-	  "main": "index.js",
+	  "description": "Data collect from sensors",
+	  "main": "src/index.js",
 	  "scripts": {
+			"start": "node src/index.js",
 		  "test": "jest"
 	  },
 	  "author": "Ozan Yıldız",
