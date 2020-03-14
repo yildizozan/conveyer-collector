@@ -1,20 +1,14 @@
-FROM node:12-alpine
+FROM golang:alpine AS builder
+WORKDIR /go/src/github.com/yildizozan/conveyer-service-collector/
 
-# Create app directory
-WORKDIR /usr/src/app
+# Dependencies
+RUN go get -d -v golang.org/x/net/html
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY package.json .
+COPY . .
 
-RUN yarn install
-# If you are building your code for production
-# RUN npm ci --only=production
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o app .
 
-# Bundle app source
-RUN mkdir src
-ADD src/ src/
-
-CMD [ "yarn", "start" ]
-
+FROM scratch
+WORKDIR /
+COPY --from=builder /go/src/github.com/yildizozan/conveyer-service-collector/app .
+CMD ["./app"]
