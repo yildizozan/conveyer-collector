@@ -39,9 +39,11 @@ func main() {
 		log.Fatalf("%s: %s", "Failed to declare an exchange", err)
 	}
 
-	body := bodyFrom(os.Args)
+	rand.Seed(time.Now().UTC().UnixNano())
 	for x := range time.Tick(3 * time.Second) {
 		fmt.Printf("%s\n", x)
+
+		body := bodyFrom(os.Args)
 		err = ch.Publish(
 			"logs", // exchange
 			"",     // routing key
