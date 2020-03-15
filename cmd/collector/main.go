@@ -3,34 +3,47 @@ package main
 import (
 	"context"
 	pb "conveyer-service-collector/cmd/collector/measurement"
-	"fmt"
+	"conveyer-service-collector/cmd/collector/model"
 	"github.com/streadway/amqp"
 	"google.golang.org/grpc"
 	"log"
 	"net"
+	"os"
 )
 
 // AMQP Channel
-var ch *amqp.Channel
+var channel *amqp.Channel
+
+const (
+	exchange = "conveyer"
+)
+
+var grpcServer string = os.Getenv("GRPC_CONN_STR")
+var eventQueueConnStr string = os.Getenv("EVENT_QUEUE_CONN_STR")
 
 type service struct {
 	pb.UnimplementedMeasurementServiceServer
 }
 
-func (s *service) NewMeasurement(ctx context.Context, measurement *pb.Measurement) (*pb.OK, error) {
-	fmt.Println(measurement)
+func (s *service) NewMeasurement(ctx context.Context, proto *pb.Measurement) (*pb.OK, error) {
 
-	err := ch.Publish(
-		"logs", // exchange
-		"",     // routing key
-		false,  // mandatory
-		false,  // immediate
+	m := model.NewMeasurement(proto.GetHumidity(), proto.GetHumidity(), proto.GetColor())
+	json, err := m.MarshallJSON()
+	if err != nil {
+		log.Fatalf("%s: %s\n", "MarshallJSON", err)
+	}
+
+	err = channel.Publish(
+		exchange, // exchange
+		"",       // routing key
+		false,    // mandatory
+		false,    // immediate
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte(measurement.String()),
+			ContentType: "application/json",
+			Body:        json,
 		})
 	if err != nil {
-		log.Fatalf("%s: %s", "Failed to publish a message", err)
+		log.Fatalf("%s: %s\n", "Failed to publish a message", err)
 	}
 
 	return &pb.OK{
@@ -39,27 +52,27 @@ func (s *service) NewMeasurement(ctx context.Context, measurement *pb.Measuremen
 }
 
 func main() {
-	conn, err := amqp.Dial("amqp://orebron.com:5672/")
+	conn, err := amqp.Dial(eventQueueConnStr)
 	if err != nil {
 		log.Fatalf("%s: %s", "Failed to connect to RabbitMQ", err)
 	}
 	defer conn.Close()
 
-	ch, err = conn.Channel()
+	channel, err = conn.Channel()
 	if err != nil {
 		log.Fatalf("%s: %s", "Failed to open a channel", err)
 	}
-	defer ch.Close()
+	defer channel.Close()
 
-	lis, err := net.Listen("tcp", "localhost:50051")
+	lis, err := net.Listen("tcp", grpcServer)
 	if err != nil {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
-	err = ch.ExchangeDeclare(
-		"logs",   // name
+	err = channel.ExchangeDeclare(
+		exchange, // name
 		"fanout", // type
-		false,    // durable
+		true,     // durable
 		false,    // auto-deleted
 		false,    // internal
 		false,    // no-wait
@@ -67,6 +80,52 @@ func main() {
 	)
 	if err != nil {
 		log.Fatalf("%s: %s", "Failed to declare an exchange", err)
+	}
+
+	queue, err := channel.QueueDeclare(
+		"clients",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Fatalf("%s: %s\n", "Failed to declare a queue", err)
+	}
+
+	err = channel.QueueBind(
+		queue.Name,
+		"clients",
+		exchange,
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Fatalf("%s: %s\n", "Failed to `db` queue bind", err)
+	}
+
+	queue, err = channel.QueueDeclare(
+		"db",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Fatalf("%s: %s\n", "Failed to declare a queue", err)
+	}
+
+	err = channel.QueueBind(
+		queue.Name,
+		"db",
+		exchange,
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Fatalf("%s: %s\n", "Failed to `client` queue bind", err)
 	}
 
 	s := grpc.NewServer()
