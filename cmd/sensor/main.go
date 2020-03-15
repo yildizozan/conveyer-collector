@@ -3,7 +3,7 @@ package main
 
 import (
 	"context"
-	pb "conveyer-service-collector/protos/measurement"
+	pb "conveyer-service-collector/cmd/collector/measurement"
 	"fmt"
 	"log"
 	"math/rand"
