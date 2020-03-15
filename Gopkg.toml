@@ -24,6 +24,7 @@
 #   go-tests = true
 #   unused-packages = true
 
+ignored = ["conveyer-service-collector/protos/measurement"]
 
 [[constraint]]
   name = "github.com/golang/protobuf"
