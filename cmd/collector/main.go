@@ -4,6 +4,7 @@ import (
 	"context"
 	pb "conveyer-service-collector/cmd/collector/measurement"
 	"conveyer-service-collector/cmd/collector/model"
+	"fmt"
 	"github.com/streadway/amqp"
 	"google.golang.org/grpc"
 	"log"
@@ -52,6 +53,10 @@ func (s *service) NewMeasurement(ctx context.Context, proto *pb.Measurement) (*p
 }
 
 func main() {
+	fmt.Println(grpcServer)
+	fmt.Println(eventQueueConnStr)
+	fmt.Println("- Starting ------")
+
 	conn, err := amqp.Dial(eventQueueConnStr)
 	if err != nil {
 		log.Fatalf("%s: %s", "Failed to connect to RabbitMQ", err)
