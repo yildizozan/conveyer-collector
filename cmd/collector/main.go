@@ -28,7 +28,7 @@ type service struct {
 
 func (s *service) NewMeasurement(ctx context.Context, proto *pb.Measurement) (*pb.OK, error) {
 
-	m := model.NewMeasurement(proto.GetHumidity(), proto.GetHumidity(), proto.GetColor())
+	m := model.NewMeasurement(proto.GetWeight(), proto.GetHumidity(), proto.GetColor())
 	json, err := m.MarshallJSON()
 	if err != nil {
 		log.Fatalf("%s: %s\n", "MarshallJSON", err)
