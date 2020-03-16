@@ -4,6 +4,7 @@ import (
 	"context"
 	pb "conveyer-service-collector/cmd/collector/measurement"
 	"conveyer-service-collector/cmd/collector/model"
+	"fmt"
 	"github.com/streadway/amqp"
 	"google.golang.org/grpc"
 	"log"
@@ -27,7 +28,7 @@ type service struct {
 
 func (s *service) NewMeasurement(ctx context.Context, proto *pb.Measurement) (*pb.OK, error) {
 
-	m := model.NewMeasurement(proto.GetHumidity(), proto.GetHumidity(), proto.GetColor())
+	m := model.NewMeasurement(proto.GetWeight(), proto.GetHumidity(), proto.GetColor())
 	json, err := m.MarshallJSON()
 	if err != nil {
 		log.Fatalf("%s: %s\n", "MarshallJSON", err)
@@ -52,6 +53,10 @@ func (s *service) NewMeasurement(ctx context.Context, proto *pb.Measurement) (*p
 }
 
 func main() {
+	fmt.Println(grpcServer)
+	fmt.Println(eventQueueConnStr)
+	fmt.Println("- Starting ------")
+
 	conn, err := amqp.Dial(eventQueueConnStr)
 	if err != nil {
 		log.Fatalf("%s: %s", "Failed to connect to RabbitMQ", err)
