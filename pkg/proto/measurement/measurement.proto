@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package measurement;
+
 service MeasurementService {
     rpc NewMeasurement (Measurement) returns (OK) {
     }

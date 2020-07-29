@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	pb "conveyer-service-collector/cmd/collector/measurement"
-	"conveyer-service-collector/cmd/collector/model"
+	pb "github.com/yildizozan/conveyer-collector/pkg/proto/measurement"
+	"github.com/yildizozan/conveyer-collector/cmd/model"
 	"fmt"
 	"github.com/streadway/amqp"
 	"google.golang.org/grpc"

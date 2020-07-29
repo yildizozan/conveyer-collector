@@ -23,3 +23,25 @@ func (m *Measurement) MarshallJSON() ([]byte, error) {
 		Color:    m.Color,
 	})
 }
+
+type Position struct {
+  X float32 `json:"x"`
+  Y float32 `json:"y"`
+  Z float32 `json:"z"`
+}
+
+func NewPosition(x, y, z float32) *Position {
+  return &Position{X: x, Y: y, Z: z}
+}
+
+func (p *Position) MarshallJSON() ([]byte, error) {
+  return json.Marshal(&struct {
+    X float32 `json:"x"`
+    Y float32 `json:"y"`
+    Z float32 `json:"z"`
+  }{
+    X: p.X,
+    Y: p.Y,
+    Z: p.Z,
+  })
+}
