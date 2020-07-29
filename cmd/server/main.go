@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	pb "conveyer-service-collector/cmd/collector/measurement"
+	pb "github.com/yildizozan/conveyer-collector/pkg/proto/measurement"
 	"fmt"
 	"google.golang.org/grpc"
 	"log"
