@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	pb "github.com/yildizozan/conveyer-collector/pkg/proto/measurement"
+	pb "github.com/yildizozan/conveyer-collector/pkg/proto/position"
 	"github.com/yildizozan/conveyer-collector/cmd/model"
 	"fmt"
 	"github.com/streadway/amqp"
@@ -23,12 +23,12 @@ var grpcServer string = os.Getenv("GRPC_CONN_STR")
 var eventQueueConnStr string = os.Getenv("EVENT_QUEUE_CONN_STR")
 
 type service struct {
-	pb.UnimplementedMeasurementServiceServer
+	pb.UnimplementedPositionServiceServer
 }
 
-func (s *service) NewMeasurement(ctx context.Context, proto *pb.Measurement) (*pb.OK, error) {
+func (s *service) NewPosition(ctx context.Context, proto *pb.Position) (*pb.OK, error) {
 
-	m := model.NewMeasurement(proto.GetWeight(), proto.GetHumidity(), proto.GetColor())
+	m := model.NewPosition(proto.GetX(), proto.GetY(), proto.GetZ())
 	json, err := m.MarshallJSON()
 	if err != nil {
 		log.Fatalf("%s: %s\n", "MarshallJSON", err)
@@ -134,7 +134,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterMeasurementServiceServer(s, &service{})
+	pb.RegisterPositionServiceServer(s, &service{})
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
