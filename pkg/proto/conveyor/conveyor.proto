@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package zyx;
+package conveyor;
 
-service Services {
+service ConveyorService {
   rpc NewPosition (Position) returns (OK) {
   }
   rpc NewEnginesState(Engines) returns (OK) {

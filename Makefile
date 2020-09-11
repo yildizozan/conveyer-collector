@@ -2,7 +2,7 @@ all: compile build
 .PHONY: all
 
 .PHONY: compile
-PROTOS = position measurement
+PROTOS = conveyor
 compile:
 	for proto in $(PROTOS); do protoc -I pkg/proto/$$proto/ pkg/proto/$$proto/$$proto.proto --go_out=plugins=grpc:pkg/proto/$$proto; done
 

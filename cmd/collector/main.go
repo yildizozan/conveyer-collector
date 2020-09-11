@@ -19,8 +19,8 @@ const (
 	exchange = "conveyor"
 )
 
-var grpcServer string = os.Getenv("GRPC_CONN_STR")
-var eventQueueConnStr string = os.Getenv("EVENT_QUEUE_CONN_STR")
+var grpcServer = os.Getenv("GRPC_CONN_STR")
+var eventQueueConnStr = os.Getenv("EVENT_QUEUE_CONN_STR")
 
 type service struct {
 	pb.UnimplementedConveyorServiceServer
@@ -52,9 +52,9 @@ func (s *service) NewPosition(ctx context.Context, proto *pb.Position) (*pb.OK, 
 	}, nil
 }
 
-func (s *service) NewEngineState(ctx context.Context, proto *pb.Position) (*pb.OK, error) {
+func (s *service) NewEnginesState(ctx context.Context, proto *pb.Engines) (*pb.OK, error) {
 
-	m := model.NewPosition(proto.GetX(), proto.GetY(), proto.GetZ())
+	m := model.NewEngines(proto.GetGreen(), proto.GetRed(), proto.GetBlack(), proto.GetOrange())
 	json, err := m.MarshallJSON()
 	if err != nil {
 		log.Fatalf("%s: %s\n", "MarshallJSON", err)
@@ -139,7 +139,7 @@ func main() {
 	}
 
 	s := grpc.NewServer()
-	pb.RegisterPositionServiceServer(s, &service{})
+	pb.RegisterConveyorServiceServer(s, &service{})
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
