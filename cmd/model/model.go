@@ -25,23 +25,30 @@ func (m *Measurement) MarshallJSON() ([]byte, error) {
 }
 
 type Position struct {
-  X float32 `json:"x"`
-  Y float32 `json:"y"`
-  Z float32 `json:"z"`
+	X float32 `json:"x"`
+	Y float32 `json:"y"`
+	Z float32 `json:"z"`
 }
 
 func NewPosition(x, y, z float32) *Position {
-  return &Position{X: x, Y: y, Z: z}
+	return &Position{X: x, Y: y, Z: z}
 }
 
 func (p *Position) MarshallJSON() ([]byte, error) {
-  return json.Marshal(&struct {
-    X float32 `json:"x"`
-    Y float32 `json:"y"`
-    Z float32 `json:"z"`
-  }{
-    X: p.X,
-    Y: p.Y,
-    Z: p.Z,
-  })
+	return json.Marshal(&struct {
+		X float32 `json:"x"`
+		Y float32 `json:"y"`
+		Z float32 `json:"z"`
+	}{
+		X: p.X,
+		Y: p.Y,
+		Z: p.Z,
+	})
+}
+
+type Engines struct {
+	Green  int32 `json:"green"`
+	Red    int32 `json:"red"`
+	Black  int32 `json:"black"`
+	Orange int32 `json:"orange"`
 }

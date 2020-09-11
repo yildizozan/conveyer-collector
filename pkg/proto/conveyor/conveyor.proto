@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package zyx;
+
+service Services {
+  rpc NewPosition (Position) returns (OK) {
+  }
+  rpc NewEnginesState(Engines) returns (OK) {
+  }
+}
+
+message OK {
+  bool success = 1;
+}
+
+message Position {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message Engines {
+  int32 green = 1;
+  int32 red = 2;
+  int32 black = 3;
+  int32 orange = 4;
+}

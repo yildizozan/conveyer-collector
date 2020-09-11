@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
-	pb "github.com/yildizozan/conveyer-collector/pkg/proto/position"
-	"github.com/yildizozan/conveyer-collector/cmd/model"
 	"fmt"
 	"github.com/streadway/amqp"
+	"github.com/yildizozan/conveyor-collector/cmd/model"
+	pb "github.com/yildizozan/conveyor-collector/pkg/proto/conveyor"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -16,17 +16,43 @@ import (
 var channel *amqp.Channel
 
 const (
-	exchange = "conveyer"
+	exchange = "conveyor"
 )
 
 var grpcServer string = os.Getenv("GRPC_CONN_STR")
 var eventQueueConnStr string = os.Getenv("EVENT_QUEUE_CONN_STR")
 
 type service struct {
-	pb.UnimplementedPositionServiceServer
+	pb.UnimplementedConveyorServiceServer
 }
 
 func (s *service) NewPosition(ctx context.Context, proto *pb.Position) (*pb.OK, error) {
+
+	m := model.NewPosition(proto.GetX(), proto.GetY(), proto.GetZ())
+	json, err := m.MarshallJSON()
+	if err != nil {
+		log.Fatalf("%s: %s\n", "MarshallJSON", err)
+	}
+
+	err = channel.Publish(
+		exchange, // exchange
+		"",       // routing key
+		false,    // mandatory
+		false,    // immediate
+		amqp.Publishing{
+			ContentType: "application/json",
+			Body:        json,
+		})
+	if err != nil {
+		log.Fatalf("%s: %s\n", "Failed to publish a message", err)
+	}
+
+	return &pb.OK{
+		Success: true,
+	}, nil
+}
+
+func (s *service) NewEngineState(ctx context.Context, proto *pb.Position) (*pb.OK, error) {
 
 	m := model.NewPosition(proto.GetX(), proto.GetY(), proto.GetZ())
 	json, err := m.MarshallJSON()
@@ -74,6 +100,7 @@ func main() {
 		log.Fatalf("Failed to listen: %v", err)
 	}
 
+	// Exchange
 	err = channel.ExchangeDeclare(
 		exchange, // name
 		"fanout", // type
@@ -87,6 +114,7 @@ func main() {
 		log.Fatalf("%s: %s", "Failed to declare an exchange", err)
 	}
 
+	// New queue declare
 	queue, err := channel.QueueDeclare(
 		"clients",
 		true,
@@ -108,29 +136,6 @@ func main() {
 	)
 	if err != nil {
 		log.Fatalf("%s: %s\n", "Failed to `db` queue bind", err)
-	}
-
-	queue, err = channel.QueueDeclare(
-		"db",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		log.Fatalf("%s: %s\n", "Failed to declare a queue", err)
-	}
-
-	err = channel.QueueBind(
-		queue.Name,
-		"db",
-		exchange,
-		false,
-		nil,
-	)
-	if err != nil {
-		log.Fatalf("%s: %s\n", "Failed to `client` queue bind", err)
 	}
 
 	s := grpc.NewServer()
